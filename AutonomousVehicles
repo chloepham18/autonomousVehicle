@@ -1,0 +1,151 @@
+import autonomous_vehicles as av
+def print_basic_scenario():
+
+    s = av.Scenario(3, True, 0, False, False, 5, True)
+
+    print ("Passengers: " + str(s.num_passengers()))
+    print ("Left Lane:")
+    print ("  Barrier exits:      " + str(s.left_barrier_exists()))
+    print ("  Pedestrians:        " + str(s.left_num_pedestrians()))
+    print ("  Crossing signal on: " + str(s.left_crossing_signal_on()))
+    print ("Right Lane:")
+    print ("  Barrier exists:     " + str(s.right_barrier_exists()))
+    print ("  Pedestrians:        " + str(s.right_num_pedestrians()))
+    print ("  Crossing signal on: " + str(s.right_crossing_signal_on()))
+##print_basic_scenario()
+
+def example_scenario():
+    s = av.Scenario(0, False, 0, False, False, 0, False)
+
+##    s.randomize()
+
+    s = av.Scenario(2, True, 0, False, False, 2, False)
+
+    print ("Passengers: " + str(s.num_passengers()))
+    print ("Left Lane:")
+    print ("  Barrier exits:      " + str(s.left_barrier_exists()))
+    print ("  Pedestrians:        " + str(s.left_num_pedestrians()))
+    print ("  Crossing signal on: " + str(s.left_crossing_signal_on()))
+    print ("Right Lane:")
+    print ("  Barrier exists:     " + str(s.right_barrier_exists()))
+    print ("  Pedestrians:        " + str(s.right_num_pedestrians()))
+    print ("  Crossing signal on: " + str(s.right_crossing_signal_on()))
+##example_scenario()
+
+def random_scenarios():
+    for i in range(10):
+        s = av.Scenario(5, True, 0, False, False, 3, True)
+
+        s.randomize()
+
+        print("Passengers: " + str(s.num_passengers()))
+        print("Left Lane:")
+        print("  Barrier exits:      " + str(s.left_barrier_exists()))
+        print("  Pedestrians:        " + str(s.left_num_pedestrians()))
+        print("  Crossing signal on: " + str(s.left_crossing_signal_on()))
+        print("Right Lane:")
+        print("  Barrier exists:     " + str(s.right_barrier_exists()))
+        print("  Pedestrians:        " + str(s.right_num_pedestrians()))
+        print("  Crossing signal on: " + str(s.right_crossing_signal_on()))
+##random_scenarios()
+
+def selfish_car(s):
+    if s.left_barrier_exists() == True:
+        return "Swerve"
+    else:
+        return "Stay"
+####
+####s = av.Scenario(3, False, 5, True, True, 0, True)
+####assert selfish_car(s) == "Stay", "Swerved but should have stayed"
+####print("Success!")
+##
+def test_selfish_car():
+    s1 = av.Scenario(3, False, 5, True, True, 0, True)
+    assert selfish_car(s1) == "Stay", "Swerved but should have stayed"
+
+    s2 = av.Scenario(3, True, 5, True, False, 0, True)
+    assert selfish_car(s2) == "Swerve", "Stayed but should have swerved"
+##
+##test_selfish_car()
+
+def num_dead(lane, s):
+    if lane == "Right":
+        if s.right_barrier_exists() == True:
+            return s.num_passengers()
+        else:
+            return s.right_num_pedestrians()
+    if lane == "Left":
+        if s.left_barrier_exists() == True:
+            return s.num_passengers()
+        else:
+            return s.left_num_pedestrians()
+####
+####s = av.Scenario(3, True, 0, False, False, 5, True)
+####
+####left_fatalities = num_dead('Left', s)
+####print(f"Number of fatalities in the Left lane: {left_fatalities}")
+####
+####right_fatalities = num_dead('Right', s)
+####print(f"Number of fatalities in the Right lane: {right_fatalities}")
+##
+def test_num_dead():
+    s = av.Scenario(3, True, 0, True, False, 5, True)
+    assert num_dead("Right", s) == 5, "Expected 5 fatalities in the Right lane"
+    s = av.Scenario(3, True, 0, True, False, 5, True)
+    assert num_dead("Left", s) == 3, "Expected 3 fatalities in the Left lane"
+    print("Success!")
+##    
+##test_num_dead()
+
+def util_car(s):
+    left_fatalities = 0
+    right_fatalities = 0
+
+    if s.left_barrier_exists():
+        left_fatalities += s.left_num_pedestrians()
+
+    if s.right_barrier_exists():
+        right_fatalities += s.right_num_pedestrians()
+
+    if left_fatalities <= right_fatalities:
+        return "Stay"
+    else:
+        return "Swerve"
+##s = av.Scenario(3, True, 0, False, False, 5, True)
+##print(util_car(s))
+
+def test_util_car():
+    s1 = av.Scenario(3, True, 0, False, False, 5, True)
+    assert util_car(s1) == "Stay", "Car swerved but should have stayed"
+    
+    s2 = av.Scenario(3, True, 5, True, False, 5, True)
+    assert util_car(s2) == "Swerve", "Car stayed but should have swerved"
+
+
+    print("Success!")
+##test_util_car()
+    
+def simulate_car(car_type):
+    total_fatalities = 0
+    num_scenarios = 10000
+
+    for _ in range(num_scenarios):
+        s = av.Scenario(0, False, 0, False, False, 0, False)
+        s.randomize()
+        
+        if car_type == 'Selfish':
+            decision = selfish_car(s)
+        elif car_type == 'Util':
+            decision = util_car(s)
+        
+        if decision == 'Swerve':
+            total_fatalities += num_dead('Right', s)
+        else:
+            total_fatalities += num_dead('Left', s)
+    
+    average_fatalities = total_fatalities / num_scenarios
+    print(f"Average fatalities for {car_type} car: {average_fatalities:.2f}")
+####
+####simulate_car('Selfish')
+####simulate_car('Util')
+
